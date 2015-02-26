@@ -15,18 +15,21 @@
         xmlhttp.onreadystatechange=function() {
             setTimeout(function() { location.reload(); }, 0500);
         }
-        xmlhttp.open("DELETE", "http://127.0.0.1:8000/front/backsongs/" + id + "/", true);
+        xmlhttp.open("DELETE", "http://127.0.0.1:8000/front/backusers/" + id + "/", true);
         xmlhttp.send();
     }
     </script>
+
 
     {% if content %}
 
         {% for s in content %}
             <p>
-                <button type="button" onclick="deletesong({{ s.id }})">del</button>
-                <input type="submit" value="edit" onclick="window.location='http://127.0.0.1:8000/front/editsong/?id={{s.id}}';" />
-                {{ s.author }} - {{ s.name }}
+                <!--<button type="button" onclick="deletesong({{ s.id }})">del</button>-->
+                <!--<input type="submit" value="edit" onclick="window.location='http://127.0.0.1:8000/front/editsong/?id={{s.id}}';" />-->
+                <a href="http://127.0.0.1:8000/front/users/{{ s.id }}/">
+                    {{ s.name }} <font color="#666666">({{ s.age }})</font>
+                </a>
             </p>
         {% endfor %}
 
@@ -42,11 +45,11 @@
         {% endif %}
 
     {% else %}
-        no songs
+        no users
     {% endif %}
 
     <br>
     <br>
-    <a href="http://127.0.0.1:8000/front/editsong/">add song</a>
+    <a href="http://127.0.0.1:8000/front/edituser/">add user</a>
 
 {% endblock %}

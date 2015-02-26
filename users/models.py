@@ -11,7 +11,7 @@ class User(models.Model):
         return self.name + " (" + self.age + ")"
 
     def dict(self):
-        return {'name': str(self.name), 'password': str(self.password), 'age': self.age}
+        return {'id': str(self.id), 'name': str(self.name), 'password': str(self.password), 'age': self.age}
 
     def json(self):
         return json.dumps(self.dict())

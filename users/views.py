@@ -19,7 +19,8 @@ def user(request):
         id = request.path.split('/')[2]
         s = User.objects.get(id=id)
         s.name=request.REQUEST['name']
-        s.author=request.REQUEST['author']
+        s.password=request.REQUEST['password']
+        s.age=request.REQUEST['age']
         s.save()
         return HttpResponse(s.json(), content_type="application/json")
     if request.method == 'GET':
@@ -43,7 +44,7 @@ def user(request):
 @csrf_exempt
 def users(request):
     if request.method == 'PUT':
-        s = User(name=request.REQUEST['name'], author=request.REQUEST['author'])
+        s = User(name=request.REQUEST['name'], password=request.REQUEST['password'], age=request.REQUEST['age'])
         s.save()
         return HttpResponse(s.json(), content_type="application/json")
     if request.method == 'GET':
