@@ -4,6 +4,10 @@ from front import views
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
 
+    url(r'^register/$', views.edituser, name=''),
+    url(r'^login/$', views.login, name=''),
+    url(r'^logout/$', views.logout, name=''),
+
     url(r'^editsong/$', views.editsong, name='editsong'),
     url(r'^songs/$', views.songs, name='songs'),
     url(r'^songs/\d+/$', views.song, name='song'),
@@ -15,4 +19,7 @@ urlpatterns = patterns('',
     url(r'^users/\d+/$', views.user, name='user'),
     url(r'^backusers/$', views.backusers, name='users'),
     url(r'^backusers/\d+/$', views.backuser, name='user'),
+
+    url(r'^ratesong/$', views.ratesong, name='users'),
+    url(r'^unratesong/$', views.unratesong, name='user'),
 )

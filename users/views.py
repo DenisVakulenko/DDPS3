@@ -10,7 +10,59 @@ import urllib, urllib2
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
 
-from models import User
+
+from models import User, UserByName, UserSong, FindUserSong
+
+
+
+@csrf_exempt
+def usersongs(request):
+    if request.method == 'GET':
+        id = request.path.split('/')[2]
+        u = User.objects.get(id=id)
+        s = UserSong.objects.filter(user=u)
+        s = [rec.dict() for rec in s]
+        return HttpResponse(json.dumps(s), content_type="application/json")
+
+@csrf_exempt
+def usersong(request):
+    if request.method == 'GET':
+        id = request.path.split('/')[2]
+        songid = request.path.split('/')[4]
+        u = User.objects.get(id=id)
+        s = FindUserSong(u, songid)
+        if s:
+            return HttpResponse(s.json(), content_type="application/json")
+        return HttpResponse(json.dumps({'rating': '-1'}), content_type="application/json")
+
+    if request.method == 'PUT':
+        id = request.path.split('/')[2]
+        songid = request.path.split('/')[4]
+        u = User.objects.get(id=id)
+        us = UserSong(user=u, songid=songid, rating=request.REQUEST['rating'])
+        us.save()
+        return HttpResponse(us.json(), content_type="application/json")
+
+    if request.method == 'DELETE':
+        id = request.path.split('/')[2]
+        songid = request.path.split('/')[4]
+        u = User.objects.get(id=id)
+        s = UserSong.objects.filter(user=u).filter(songid=songid)
+        s.delete()
+        return HttpResponse("{ 'ok' : 'ok' }", content_type="application/json")
+
+
+def checksong(request):
+    if request.method == 'GET':
+        name=request.REQUEST['name']
+        password=request.REQUEST['password']
+
+        u = UserByName(name)
+
+        if u:
+            if u.password == password:
+                return HttpResponse(u.json(), content_type="application/json")
+
 
 
 @csrf_exempt
@@ -31,14 +83,28 @@ def user(request):
         id = request.path.split('/')[2]
         s = User.objects.get(id=id)
         s.delete()
-        return HttpResponse("'ok' : 'ok'", content_type="application/json")
+        return HttpResponse("{ 'ok' : 'ok' }", content_type="application/json")
 
 
-def user(request):
+# def user(request):
+#     if request.method == 'GET':
+#         id = request.path.split('/')[2]
+#         s = User.objects.get(name=id)
+#         return HttpResponse(s.json(), content_type="application/json")
+
+
+def check(request):
     if request.method == 'GET':
-        id = request.path.split('/')[2]
-        s = User.objects.get(name=id)
-        return HttpResponse(s.json(), content_type="application/json")
+        name=request.REQUEST['name']
+        password=request.REQUEST['password']
+
+        u = UserByName(name)
+
+        if u:
+            if u.password == password:
+                return HttpResponse(u.json(), content_type="application/json")
+
+        return HttpResponse(json.dumps({'id': '-1'}), content_type="application/json")
 
 
 @csrf_exempt

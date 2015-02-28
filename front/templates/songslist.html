@@ -18,18 +18,72 @@
         xmlhttp.open("DELETE", "http://127.0.0.1:8000/front/backsongs/" + id + "/", true);
         xmlhttp.send();
     }
+
+    function ratesong(sid, uid, rating) {
+        var xmlhttp;
+        if (window.XMLHttpRequest) {        // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp=new XMLHttpRequest();
+        }
+        else {                              // code for IE6, IE5
+            xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange=function() {
+            setTimeout(function() { location.reload(); }, 0500);
+        }
+        xmlhttp.open("GET", "http://127.0.0.1:8000/front/ratesong/?sid="+sid+"&uid="+uid+"&r="+rating, true);
+        xmlhttp.send();
+    }
+    function unratesong(sid, uid) {
+        var xmlhttp;
+        if (window.XMLHttpRequest) {        // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp=new XMLHttpRequest();
+        }
+        else {                              // code for IE6, IE5
+            xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange=function() {
+            setTimeout(function() { location.reload(); }, 0500);
+        }
+        xmlhttp.open("GET", "http://127.0.0.1:8000/front/unratesong/?sid="+sid+"&uid="+uid, true);
+        xmlhttp.send();
+    }
     </script>
 
     {% if content %}
 
+        <table border="0">
         {% for s in content %}
             <p>
+                <tr>
+                    <td>
                 <button type="button" onclick="deletesong({{ s.id }})">del</button>
                 <input type="submit" value="edit" onclick="window.location='http://127.0.0.1:8000/front/editsong/?id={{s.id}}';" />
-                {{ s.author }} - {{ s.name }}
+                <!--<a href="http://127.0.0.1:8000/front/songs/{{ s.id }}/">-->
+                    {{ s.author }} - {{ s.name }}
+                <!--</a>-->
+                    </td>
+                    <td>
+                {% if username != null %}
+
+                {% if s.rating %}
+                (*{% if s.rating >= 2 %}*{% endif %}{% if s.rating == 3 %}*{% endif %})
+                <button type="button" onclick="unratesong({{ s.id }}, {{ userid }})">unrate</button>
+                {% else %}
+                <button type="button" onclick="ratesong({{ s.id }}, {{ userid }}, 1)">*</button>
+                <button type="button" onclick="ratesong({{ s.id }}, {{ userid }}, 2)">**</button>
+                <button type="button" onclick="ratesong({{ s.id }}, {{ userid }}, 3)">***</button>
+                {% endif %}
+                {% endif %}
+                    </td>
+                </tr>
             </p>
         {% endfor %}
+        </table>
 
+        <br>
+        <br>
+
+        {% if page %}
 
         {% if page > 1 %}
             <a href='{{url}}?page={{ page|add:"-1" }}'> < </a>
@@ -39,6 +93,8 @@
 
         {% if page < pages %}
             <a href='{{url}}?page={{ page|add:"+1" }}'> > </a>
+        {% endif %}
+
         {% endif %}
 
     {% else %}

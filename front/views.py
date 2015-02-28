@@ -18,7 +18,60 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
 def index(request):
-    return render(request, 'main.html')
+    s = {}
+    checkcookie(request, s)
+    return render(request, 'main.html', s)
+
+
+def checkcookie(request, dict):
+    if request.COOKIES.has_key('sessiontoken'):
+        t = request.COOKIES['sessiontoken']
+        s = requests.get('http://127.0.0.1:8000/mysessions/' + t + '/')
+        s = json.loads(s.content)
+        if s['valid'] == 'yes':
+            u = requests.get('http://127.0.0.1:8000/users/' + s['id'])
+            u = json.loads(u.content)
+            dict['username'] = u['name']
+            dict['userid'] = u['id']
+
+
+class LoginForm(forms.Form):
+    name     = forms.CharField(label='Name', max_length=200)
+    password = forms.CharField(label='Pass', max_length=200)
+def login(request):
+    if request.method == 'POST':
+        u = requests.get('http://127.0.0.1:8000/users/check/?name=' + request.POST['name'] + '&password=' + request.POST['password'])
+        u = json.loads(u.content)
+        if u['id'] != '-1':
+            r = HttpResponse(index(request))
+            s = requests.put('http://127.0.0.1:8000/mysessions/?userid=' + u['id'])
+            s = json.loads(s.content)
+            set_cookie(r, 'sessiontoken', s['token'])
+            return r
+
+        form = LoginForm()
+        return render(request, 'form.html', {'form':form, 'msg':"wrong user or pass"})
+    form = LoginForm()
+    return render(request, 'form.html', {'form':form})
+
+def logout(request):
+    if request.COOKIES.has_key('sessiontoken'):
+        t = request.COOKIES['sessiontoken']
+        s = requests.delete('http://127.0.0.1:8000/mysessions/' + t + '/')
+    r = HttpResponse(index(request))
+    r.delete_cookie('sessiontoken')
+    return r
+
+
+import datetime
+
+def set_cookie(response, key, value, days_expire = 7):
+    if days_expire is None:
+        max_age = 365 * 24 * 60 * 60  #one year
+    else:
+        max_age = days_expire * 24 * 60 * 60
+    expires = datetime.datetime.strftime(datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT")
+    response.set_cookie(key, value, max_age=max_age, expires=expires)
 
 
 def users(request):
@@ -26,12 +79,30 @@ def users(request):
     s = requests.get('http://127.0.0.1:8000/users/?page=' + page)
     s = json.loads(s.content)
     s["url"] = "http://127.0.0.1:8000/front/users/"
+    checkcookie(request, s)
     return render(request, 'userslist.html', s)
 
 def user(request):
-    s = requests.get('http://127.0.0.1:8000/users/' + request.REQUEST['id'])
+    s = requests.get('http://127.0.0.1:8000/users/' + request.path.split('/')[3] + '/songs/')
     s = json.loads(s.content)
-    c = {'songs_list': s.content}
+    print s
+
+    l = []
+    for i in s:
+        ss = requests.get('http://127.0.0.1:8000/songs/' + i['songid'] + '/')
+        if ss.status_code == 200:
+            ss = json.loads(ss.content)
+            print ss
+
+            us = requests.get('http://127.0.0.1:8000/users/' + i['userid'] + '/songs/' + i['songid'] + '/')
+            us = json.loads(us.content)
+            if us['rating'] != '-1':
+                ss['rating'] = us['rating']
+
+            l.append(ss)
+
+    c = {'content': l}
+    checkcookie(request, c)
     return render(request, 'songslist.html', c)
 
 class EditUserForm(forms.Form):
@@ -53,7 +124,10 @@ def edituser(request):
             s = requests.get('http://127.0.0.1:8000/users/' + request.REQUEST['id'])
             s = json.loads(s.content)
             form = EditUserForm({'name': s['name'], 'password': s['password'], 'age': s['age'], 'id': s['id']})
-    return render(request, 'editsong.html', {'form': form})
+    f = {'form': form}
+    checkcookie(request, f)
+    return render(request, 'form.html', f)
+
 
 def backusers(request):
     # if request.method == 'GET':
@@ -71,17 +145,31 @@ def backuser(request):
     if request.method == 'DELETE':
         return requests.delete('http://127.0.0.1:8000/users/' + id + '/')
 
+
 def songs(request):
     page = request.GET['page'] if ('page' in request.GET) else '1'
     s = requests.get('http://127.0.0.1:8000/songs/?page=' + page)
     s = json.loads(s.content)
+    checkcookie(request, s)
+    if 'userid' in s:
+        for i in s['content']:
+            us = requests.get('http://127.0.0.1:8000/users/' + s['userid'] + '/songs/' + i['id'] + '/')
+            us = json.loads(us.content)
+            if us['rating'] != '-1':
+                i['rating'] = us['rating']
+
     s["url"] = "http://127.0.0.1:8000/front/songs/"
     return render(request, 'songslist.html', s)
 
 def song(request):
+
+
+
+
     s = requests.get('http://127.0.0.1:8000/songs/' + request.REQUEST['id'])
     s = json.loads(s.content)
     c = {'songs_list': s.content}
+    checkcookie(request, c)
     return render(request, 'songslist.html', c)
 
 class EditSongForm(forms.Form):
@@ -102,7 +190,9 @@ def editsong(request):
             s = requests.get('http://127.0.0.1:8000/songs/' + request.REQUEST['id'])
             s = json.loads(s.content)
             form = EditSongForm({'name': s['name'], 'author': s['author'], 'id': s['id']})
-    return render(request, 'editsong.html', {'form': form})
+    f = {'form': form}
+    checkcookie(request, f)
+    return render(request, 'form.html', f)
 
 
 def backsongs(request):
@@ -113,7 +203,7 @@ def backsongs(request):
         return HttpResponse(requests.put('http://127.0.0.1:8000/songs/?name=' + request.REQUEST['name'] + '&author=' + request.REQUEST['author']))
 @csrf_exempt
 def backsong(request):
-    id = request.path.split('/')[2]
+    id = request.path.split('/')[3]
     if request.method == 'POST':
         data = {'name': request.POST['name'], 'author': request.POST['author']}
         return HttpResponse(requests.post('http://127.0.0.1:8000/songs/' + id + '/', data))
@@ -122,6 +212,13 @@ def backsong(request):
     if request.method == 'DELETE':
         return HttpResponse(requests.delete('http://127.0.0.1:8000/songs/' + id + '/'))
 
+@csrf_exempt
+def ratesong(request):
+    return HttpResponse(requests.put('http://127.0.0.1:8000/users/' + request.REQUEST['uid'] + '/songs/' + request.REQUEST['sid'] + '/?rating=' + request.REQUEST['r']))
+@csrf_exempt
+def unratesong(request):
+
+    return HttpResponse(requests.delete('http://127.0.0.1:8000/users/' + request.REQUEST['uid'] + '/songs/' + request.REQUEST['sid'] + '/'))
 
 
 def debug(msg):

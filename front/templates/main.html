@@ -8,18 +8,17 @@
         <a href="http://127.0.0.1:8000/front/login">login</a>
         <a href="http://127.0.0.1:8000/front/register">register</a>
     {% else %}
-        logged in as {{username}}
+        <font color="#aaaaaa">logged in as</font> {{username}}
         <a href="http://127.0.0.1:8000/front/logout">logout</a>
     {% endif %}
 
     <br><br>
 
-    <a href="http://127.0.0.1:8000/front/songs">all music</a>
-    <a href="http://127.0.0.1:8000/front/users">all users</a>
+    <a href="http://127.0.0.1:8000/front/songs">all music</a> |
+    <a href="http://127.0.0.1:8000/front/users">all users</a>&nbsp&nbsp&nbsp
 
     {% if userid != null %}
-    <a href="http://127.0.0.1:8000/front/users/{{ userid }}">me</a>
-    <a href="http://127.0.0.1:8000/front/users/{{ userid }}/music">my music</a>
+    |&nbsp&nbsp&nbsp&nbsp<a href="http://127.0.0.1:8000/front/users/{{ userid }}">my music</a>
     {% endif %}
 
     <br><br>
