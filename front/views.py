@@ -152,11 +152,19 @@ def songs(request):
     s = json.loads(s.content)
     checkcookie(request, s)
     if 'userid' in s:
+        arr = []
         for i in s['content']:
-            us = requests.get('http://127.0.0.1:8000/users/' + s['userid'] + '/songs/' + i['id'] + '/')
-            us = json.loads(us.content)
-            if us['rating'] != '-1':
-                i['rating'] = us['rating']
+            arr.append(i['id'])
+
+        p = {'ids[]': arr}
+        us = requests.get('http://127.0.0.1:8000/users/' + s['userid'] + '/songs/byids/', params=p)
+        us = json.loads(us.content)
+
+        for i in us:
+            sid = i['songid']
+            for j in s['content']:
+                if j['id'] == sid:
+                    j['rating'] = i['rating']
 
     s["url"] = "http://127.0.0.1:8000/front/songs/"
     return render(request, 'songslist.html', s)

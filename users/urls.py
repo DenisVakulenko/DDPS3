@@ -7,4 +7,5 @@ urlpatterns = patterns('',
     url(r'^check/$', views.check, name='userbyname'),
     url(r'^\d+/songs/$', views.usersongs, name='usersongs'),
     url(r'^\d+/songs/\d+/$', views.usersong, name='usersongs'),
+    url(r'^\d+/songs/byids/$', views.usersongs_byids, name='usersongs'),
 )

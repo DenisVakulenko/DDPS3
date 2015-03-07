@@ -15,6 +15,28 @@ from models import User, UserByName, UserSong, FindUserSong
 
 
 
+
+@csrf_exempt
+def usersongs_byids(request):
+    if request.method == 'GET':
+        id = request.path.split('/')[2]
+        u = User.objects.get(id=id)
+
+        ans = []
+        songids = request.GET.getlist('ids[]')
+        for songid in songids:
+            s = FindUserSong(u, songid)
+            if s:
+                ans.append(s.dict())
+
+        if ans:
+            print 'arr req --'
+            print ans
+            print 'arr req --'
+            return HttpResponse(json.dumps(ans), content_type="application/json")
+        return HttpResponse(json.dumps({'rating': '-1'}), content_type="application/json")
+
+
 @csrf_exempt
 def usersongs(request):
     if request.method == 'GET':
